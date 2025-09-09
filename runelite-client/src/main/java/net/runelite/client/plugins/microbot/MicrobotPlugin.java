@@ -23,6 +23,8 @@ import net.runelite.client.events.OverlayMenuClicked;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginManager;
+import net.runelite.client.plugins.account.AccountPlugin;
 import net.runelite.client.plugins.microbot.qualityoflife.scripts.pouch.PouchOverlay;
 import net.runelite.client.plugins.microbot.ui.MicrobotPluginConfigurationDescriptor;
 import net.runelite.client.plugins.microbot.ui.MicrobotPluginListPanel;
@@ -155,6 +157,8 @@ public class MicrobotPlugin extends Plugin
 
 		Microbot.pauseAllScripts.set(false);
 
+		ensureAccountPluginIsRemoved();
+
 		MicrobotPluginListPanel pluginListPanel = pluginListPanelProvider.get();
 		pluginListPanel.addFakePlugin(new MicrobotPluginConfigurationDescriptor(
 			"Microbot", "Microbot client settings",
@@ -251,14 +255,14 @@ public class MicrobotPlugin extends Plugin
 	}
 
 	/**
-	 * Retrieves all currently open container IDs from {@link net.runelite.api.gameval.InventoryID}
+	 * Retrieves all currently open container IDs from {@link InventoryID}
 	 * and excludes specific container IDs.
 	 *
 	 * @return an array of open container IDs excluding the specified excluded IDs
 	 */
 	private int[] getShopContainerIds()
 	{
-		Field[] fields = net.runelite.api.gameval.InventoryID.class.getFields();
+		Field[] fields = InventoryID.class.getFields();
 		List<Integer> openContainerIds = new ArrayList<>();
 		int[] excludedIds = { 90, 93, 94, 95 };
 
@@ -593,7 +597,7 @@ public class MicrobotPlugin extends Plugin
 	}
 	/**
 	 * Dynamically checks if any visible widget overlaps with the specified bounds
-	 * @param overlayBounds The bounds to check for widget overlap
+	 * @param overlayBoundsCanvas The bounds to check for widget overlap
 	 * @return true if any visible widget overlaps with the specified bounds
 	 */
 	public boolean hasWidgetOverlapWithBounds(Rectangle overlayBoundsCanvas) {
@@ -624,5 +628,22 @@ public class MicrobotPlugin extends Plugin
 		lastOverlapResult = result;
 
 		return result;
+	}
+
+	/**
+	 * Makes sure that AccountPlugin is removed to avoid
+	 * user linking runelite account with Microbot client
+	 */
+	private void ensureAccountPluginIsRemoved() {
+		Plugin accountPlugin = Microbot.getPlugin(AccountPlugin.class);
+		if (accountPlugin == null) return;
+
+		PluginManager pluginManager = Microbot.getPluginManager();
+		if (pluginManager == null) return;
+
+		if (pluginManager.getPlugins().contains(accountPlugin)) {
+			log.info("Removing AccountPlugin to avoid user linking runelite account with Microbot client.");
+			pluginManager.remove(accountPlugin);
+		}
 	}
 }
