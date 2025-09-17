@@ -92,7 +92,7 @@ public class Rs2Walker {
     static int stuckCount = 0;
     static WorldPoint lastPosition;
     static volatile WorldPoint currentTarget;
-    static int nextWalkingDistance = 10;
+    static int nextWalkingDistance = 20;
 
     static final int OFFSET = 10; // max offset of the exact area we teleport to
 
